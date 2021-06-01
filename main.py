@@ -43,6 +43,18 @@ def parse_args():
                                  "\"weekly-contest-162\") if used")
     parser_get.add_argument("url", help="URL to the contest page, or the contest name (e.g. \"weekly-contest-162\")")
 
+    parser_getp = subparsers.add_parser("getp", help="Download LeetCode problem and generate testing code")
+    parser_getp.add_argument("-u", "--username", dest="username", default=None,
+                            help="The LeetCode account to use, required if you logged in with multiple accounts")
+    parser_getp.add_argument("-l", "--lang", metavar="LANG", dest="lang", action="append", required=True,
+                            choices=list(lchelper.LANGUAGES.keys()),
+                            help="Languages to generate testing code for, supported languages are: [%(choices)s]")
+    parser_getp.add_argument("--no-cache", action="store_true", default=True,
+                            help="Do not use cached problem descriptions when generating code")
+    parser_getp.add_argument("-o", "--output", dest="output", default="./",
+                            help="The path to store generated projects")
+    parser_getp.add_argument("url", help="URL to the contest page")
+
     args = parser.parse_args()
     if not args.command:
         parser.print_help(sys.stderr)
@@ -68,7 +80,7 @@ def main():
 
         url_parse = urlparse(args.url)
         if url_parse.netloc != "":  # URL instead of name
-            contest_name = args.url.rstrip('/').split('/')[-1]  # use the final URL segment as contest nme
+            contest_name = args.url.rstrip('/').split('/')[-1]  # use the final URL segment as contest name
             site: Optional[str] = lchelper.utils.remove_affix(url_parse.netloc, "www.", ".com")
         else:
             contest_name = args.url
@@ -117,8 +129,6 @@ def main():
             problems = lchelper.get_problems(url, user.site, cookie_path)
 
             info[site, contest_name] = [lchelper.utils.to_dict(p) for p in problems]
-            with open(CACHE_FILE, "wb") as f:
-                pickle.dump(info, f)
         else:
             problems = [lchelper.utils.from_dict(lchelper.Problem, p) for p in cached_problems]
 
@@ -126,6 +136,52 @@ def main():
             codegen = lchelper.create_codegen(lang)
             project_path = os.path.join(args.output, f"{(args.prefix or contest_name)}_{lang}")
             codegen.create_project(project_path, problems, site, debug=args.debug)
+            lchelper.log(f"Project in language '{lang}' stored at: {project_path}", "success")
+    elif args.command == "getp":
+        url_parse = urlparse(args.url)
+        problem_name = args.url.rstrip('/').split('/')[-1]  # use the final URL segment as problem name
+        site: Optional[str] = lchelper.utils.remove_affix(url_parse.netloc, "www.", ".com")
+        # get users
+        available_users = lchelper.get_users()
+        if len(available_users) == 0:
+            print(f"You're not logged in. Please run `{PROGRAM} login <username>` first.")
+            exit(1)
+
+        candidates = user_candidates = available_users
+        if args.username is not None:
+            candidates = user_candidates = [user for user in candidates if user.username == args.username]
+        if site is not None:
+            candidates = [user for user in candidates if user.site == site]
+        # If there exist multiple candidates with different usernames, raise an error to avoid ambiguity.
+        if len(set(user.username for user in candidates)) > 1:
+            print(f"You have logged in with multiple accounts: {', '.join(repr(s) for s in candidates)}.\n"
+                  f"Please select the user using the `-u <username>` flag.")
+            exit(1)
+        if len(candidates) == 0:
+            if args.username is not None:
+                if len(user_candidates) > 0:
+                    print(f"The specified user '{args.username}' is not from the site '{site}'.\n"
+                          f"Please log in with a user from '{site}' by running "
+                          f"`{PROGRAM} login -s {site} <username>`.")
+                else:
+                    print(f"The specified user '{args.username}' is not logged in.\n"
+                          f"Please log in by running `{PROGRAM} login {args.username}` first.")
+            else:
+                print(f"There are no users from the site '{site}'.\n"
+                      f"Please log in with a user from '{site}' by running `{PROGRAM} login -s {site} <username>`.")
+            exit(1)
+
+        user = candidates[0]
+        cookie_path = lchelper.get_cookie_path(user.username, user.site)
+        url = f"https://{user.site}.com/problems/{problem_name}"
+        lchelper.log(f"User: {user}, URL: {url}")
+
+        problem = lchelper.get_problem(url, user.site, cookie_path)
+
+        for lang in args.lang:
+            codegen = lchelper.create_codegen(lang)
+            project_path = os.path.join(args.output, f"{problem_name}_{lang}")
+            codegen.create_project_single_problem(project_path, problem, site, debug=args.debug)
             lchelper.log(f"Project in language '{lang}' stored at: {project_path}", "success")
 
 

@@ -20,6 +20,25 @@ Signature = Union[ProblemSignature, InteractiveProblemSignature]
 Code = List[str]
 
 
+def get_problem_dir(idx: int, problem: Problem) -> str:
+    return f"{chr(ord('A') + idx)}"
+
+
+def format_statement(problem: Problem) -> List[str]:
+    r"""Convert the problem statement into code (as comments).
+
+    :param problem: The problem description.
+    :return: Code for the problem statement.
+    """
+    # statement = []
+    # max_length = 80 - (len(self.line_comment_symbol) + 1)
+    # for line in problem.statement.strip().split("\n"):
+    #     comments = [f"{self.line_comment_symbol} {line[i:(i + max_length)]}"
+    #                 for i in range(0, len(line), max_length)]
+    #     statement.extend(comments)
+    return ""
+
+
 class CodeGen(abc.ABC):
     @property
     @abc.abstractmethod
@@ -143,27 +162,13 @@ class CodeGen(abc.ABC):
         pass
 
     def get_problem_file_name(self, idx: int, problem: Problem) -> str:
-        r"""Generate the code file name for a problem. By default, names are uppercase letters starting from "A".
+        """Generate the code file name for a problem. By default, names are uppercase letters starting from "A".
 
         :param idx: Zero-based index of the problem.
         :param problem: The description of the problem.
         :return: The code file name of the problem.
         """
-        return f"{chr(ord('A') + idx)}{self.code_extension}"
-
-    def format_statement(self, problem: Problem) -> List[str]:
-        r"""Convert the problem statement into code (as comments).
-
-        :param problem: The problem description.
-        :return: Code for the problem statement.
-        """
-        statement = []
-        max_length = 80 - (len(self.line_comment_symbol) + 1)
-        for line in problem.statement.strip().split("\n"):
-            comments = [f"{self.line_comment_symbol} {line[i:(i + max_length)]}"
-                        for i in range(0, len(line), max_length)]
-            statement.extend(comments)
-        return statement
+        return f"{chr(ord('A') + idx)}/{chr(ord('A') + idx)}{self.code_extension}"
 
     def create_project(self, project_path: str, problems: List[Problem], site: str, debug: bool = False) -> None:
         r"""Create the folder for the project and generate code and supporting files.
@@ -191,9 +196,9 @@ class CodeGen(abc.ABC):
                     "SOLUTION CLASS": solution_code,
                     "TEST": test_code,
                 })
-                if problem.statement != "":
-                    statement = self.format_statement(problem)
-                    problem_code = self.replace_section(problem_code, {"STATEMENT": statement}, ignore_errors=True)
+                code_dir_path = os.path.join(project_path, get_problem_dir(idx, problem))
+                if not os.path.exists(code_dir_path):
+                    os.makedirs(code_dir_path)
                 code_path = os.path.join(project_path, self.get_problem_file_name(idx, problem))
                 self.write_and_backup(code_path, "\n".join(problem_code) + "\n")
             except Exception:
@@ -206,4 +211,26 @@ class CodeGen(abc.ABC):
             with open(os.path.join(project_path, tmpl_name), "w") as f:
                 f.write(tmpl_code.strip() + "\n")
 
-        self.generate_additional_files(project_path, problems, signatures)
+    def create_project_single_problem(self, project_path: str, problem: Problem, site: str, debug: bool = False) -> None:
+        if not os.path.exists(project_path):
+            os.makedirs(project_path)
+        template = self.template_code.strip().split("\n")
+        user_template = self.user_template_code.strip().split("\n")
+        template = self.replace_section(template, {"USER TEMPLATE": user_template})
+
+        signatures = []
+        try:
+            problem_signature = parse_problem(problem, site)
+            signatures.append(problem_signature)
+            solution_code, test_code = self.generate_code(problem, problem_signature)
+            problem_code = self.replace_section(template, {
+                "SOLUTION CLASS": solution_code,
+                "TEST": test_code,
+            })
+            code_path = os.path.join(project_path, f'{problem.name}.cc')
+            self.write_and_backup(code_path, "\n".join(problem_code) + "\n")
+        except Exception:
+            if debug:
+                raise
+            traceback.print_exc()
+            log(f"Exception occurred while processing \"{problem.name}\"", "error")

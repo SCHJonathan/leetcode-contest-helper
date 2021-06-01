@@ -15,6 +15,7 @@ __all__ = [
     "get_users",
     "get_cookie_path",
     "update_cookie",
+    "get_problem",
     "get_problems",
 ]
 
@@ -58,7 +59,7 @@ def check_login(browser, site: str, timeout: int = 10) -> bool:
 def update_cookie(username: str, site: str) -> None:
     r"""Update the cookie for the LeetCode user."""
     print("A browser window will open shortly. Do not interact with the window until further instructions.")
-    browser = webdriver.Chrome()
+    browser = webdriver.Firefox(service_log_path=os.path.devnull)
     browser.set_window_position(0, 0)
     browser.set_window_size(800, 600)
     browser.switch_to.window(browser.window_handles[0])
@@ -108,6 +109,55 @@ def update_cookie(username: str, site: str) -> None:
     jar.save(cookie_path, ignore_discard=True, ignore_expires=True)
 
 
+def get_problem(problem_url: str, site: str, cookie_path: str) -> Problem:
+    options = webdriver.FirefoxOptions()
+    options.add_argument("headless")
+    browser = webdriver.Firefox(service_log_path=os.path.devnull, options=options)
+    browser.set_window_position(0, 0)
+    browser.set_window_size(3840, 600)  # a wide enough window so code does not get wrapped
+    browser.implicitly_wait(10)
+
+    log("Loading LeetCode problem page...")
+    browser.get(problem_url)
+    cookie_jar = http.cookiejar.LWPCookieJar(cookie_path)
+    cookie_jar.load(ignore_discard=True, ignore_expires=True)
+    for c in cookie_jar:
+        browser.add_cookie({"name": c.name, 'value': c.value, 'path': c.path})
+    # visit again to refresh page with cookies added
+    browser.get(problem_url)
+
+    if not check_login(browser, site, timeout=10):
+        browser.quit()
+        print(f"Cookie '{cookie_path}' might have expired. Please try logging in again")
+        exit(1)
+
+    browser.get(problem_url)
+    try:
+        # Page during contest; editor located below statement.
+        statement_css_selector = "div[class='content__u3I1 question-content__JfgR'"
+        code_css_selector = "pre.CodeMirror-line"
+        log(f"start find element")
+        statement = browser.find_element_by_css_selector(statement_css_selector).text
+        log(f"statement:{statement}")
+    except (TimeoutException, NoSuchElementException):
+        # Page after contest; statement and editor in vertically split panes.
+        statement_css_selector = "div[data-key='description-content'] div.content__1Y2H"
+        code_css_selector = "div.monaco-scrollable-element div.view-line"
+        statement = browser.find_element_by_css_selector(statement_css_selector).text
+    examples = [
+        elem.text for elem in browser.find_elements_by_css_selector("pre:not([class])") if elem.text]
+    # TODO: Should make sure C++ is selected!
+    code = [elem.text for elem in browser.find_elements_by_css_selector(code_css_selector)]
+    problem_words = problem_url.rstrip('/').split('/')[-1].split('-')
+    problem_words[0] = problem_words[0][0].upper()
+    problem_name = ' '.join(problem_words)
+    problem = Problem(problem_url, problem_name, statement, examples, code)
+    log(f"Parsed problem: {problem_name}")
+    browser.quit()
+    log("All problems successfully crawled", "success")
+    return problem
+
+
 def get_problems(contest_url: str, site: str, cookie_path: str) -> List[Problem]:
     r"""Obtain the list of problems in a contest, given its URL.
 
@@ -119,9 +169,9 @@ def get_problems(contest_url: str, site: str, cookie_path: str) -> List[Problem]
     if not os.path.exists(cookie_path):
         raise ValueError(f"No cookies file found at path '{cookie_path}'. Please login first")
 
-    options = webdriver.ChromeOptions()
+    options = webdriver.FirefoxOptions()
     options.add_argument("headless")
-    browser = webdriver.Chrome(options=options)
+    browser = webdriver.Firefox(service_log_path=os.path.devnull, options=options)
     browser.set_window_position(0, 0)
     browser.set_window_size(3840, 600)  # a wide enough window so code does not get wrapped
     browser.implicitly_wait(10)
