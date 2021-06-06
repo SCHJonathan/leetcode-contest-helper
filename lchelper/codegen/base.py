@@ -15,6 +15,19 @@ __all__ = [
     "CodeGen",
 ]
 
+Transformer_code = """
+import in_place
+
+f = open('in.txt')
+
+with in_place.InPlace('in.txt') as file:
+    for line in file:
+        line = line.replace('[', '{')
+        line = line.replace(']', '}')
+        file.write(line)
+
+"""
+
 T = TypeVar('T')
 Signature = Union[ProblemSignature, InteractiveProblemSignature]
 Code = List[str]
@@ -37,6 +50,15 @@ def format_statement(problem: Problem) -> List[str]:
     #                 for i in range(0, len(line), max_length)]
     #     statement.extend(comments)
     return ""
+
+
+def get_problem_file_dir(idx: int) -> str:
+    """Generate the code file name for a problem. By default, names are uppercase letters starting from "A".
+
+    :param idx: Zero-based index of the problem.
+    :return: The code file name of the problem.
+    """
+    return f"{chr(ord('A') + idx)}"
 
 
 class CodeGen(abc.ABC):
@@ -199,7 +221,11 @@ class CodeGen(abc.ABC):
                 code_dir_path = os.path.join(project_path, get_problem_dir(idx, problem))
                 if not os.path.exists(code_dir_path):
                     os.makedirs(code_dir_path)
+                in_txt_path = os.path.join(project_path, get_problem_file_dir(idx)+'/in.txt')
                 code_path = os.path.join(project_path, self.get_problem_file_name(idx, problem))
+                transformer_path = os.path.join(project_path, get_problem_file_dir(idx)+'/transformer.py')
+                self.write_and_backup(in_txt_path, "")
+                self.write_and_backup(transformer_path, Transformer_code)
                 self.write_and_backup(code_path, "\n".join(problem_code) + "\n")
             except Exception:
                 if debug:
@@ -227,7 +253,11 @@ class CodeGen(abc.ABC):
                 "SOLUTION CLASS": solution_code,
                 "TEST": test_code,
             })
+            in_txt_path = os.path.join(project_path, 'in.txt')
             code_path = os.path.join(project_path, f'{problem.name}.cc')
+            transformer_path = os.path.join(project_path, 'transformer.py')
+            self.write_and_backup(in_txt_path, "")
+            self.write_and_backup(transformer_path, Transformer_code)
             self.write_and_backup(code_path, "\n".join(problem_code) + "\n")
         except Exception:
             if debug:
