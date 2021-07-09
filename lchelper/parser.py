@@ -94,34 +94,35 @@ def parse_problem(problem: Problem, site: str = "leetcode") -> Union[ProblemSign
     # Parse function signature from code.
     class_name, func_signatures = find_functions(problem.code)
     assert len(func_signatures) > 0
+    log(f"func_signatures: {func_signatures}")
     if len(func_signatures) > 1:
         # Probably an interactive problem, skip for now.
         func_map: Dict[str, FunctionSignature] = {signature.name: signature for signature in func_signatures}
         examples: List[List[Interaction]] = []
-        for example in problem.examples:
-            try:
-                input_str = find_example_section(example, "输入", "输出", "：")
-                output_str = find_example_section(example, "输出", "解释", "：")
-            except ValueError:
-                input_str = find_example_section(example, "Input", "Output", ignore_error=True)
-                output_str = find_example_section(example, "Output", "Explanation", ignore_error=True)
-
-            functions, input_str = parse_value(input_str)
-            arg_vals, input_str = parse_value(input_str)
-            if len(input_str) > 0:
-                log(f"Problem \"{problem.name}\": Extra characters in example input section: {input_str}", "warning")
-            ret_vals, output_str = parse_value(output_str)
-            if len(output_str) > 0:
-                log(f"Problem \"{problem.name}\": Extra characters in example output section: {output_str}", "warning")
-
-            cur_examples = [
-                Interaction(
-                    function=func,
-                    input={arg_name: val for (_, arg_name), val in zip(func_map[func].arguments, args)},
-                    output=ret)
-                for func, args, ret in zip(functions, arg_vals, ret_vals)
-            ]
-            examples.append(cur_examples)
+        # for example in problem.examples:
+        #     try:
+        #         input_str = find_example_section(example, "输入", "输出", "：")
+        #         output_str = find_example_section(example, "输出", "解释", "：")
+        #     except ValueError:
+        #         input_str = find_example_section(example, "Input", "Output", ignore_error=True)
+        #         output_str = find_example_section(example, "Output", "Explanation", ignore_error=True)
+        #
+        #     functions, input_str = parse_value(input_str)
+        #     arg_vals, input_str = parse_value(input_str)
+        #     if len(input_str) > 0:
+        #         log(f"Problem \"{problem.name}\": Extra characters in example input section: {input_str}", "warning")
+        #     ret_vals, output_str = parse_value(output_str)
+        #     if len(output_str) > 0:
+        #         log(f"Problem \"{problem.name}\": Extra characters in example output section: {output_str}", "warning")
+        #
+        #     cur_examples = [
+        #         Interaction(
+        #             function=func,
+        #             input={arg_name: val for (_, arg_name), val in zip(func_map[func].arguments, args)},
+        #             output=ret)
+        #         for func, args, ret in zip(functions, arg_vals, ret_vals)
+        #     ]
+        #     examples.append(cur_examples)
 
         return InteractiveProblemSignature(class_name, func_signatures, examples)
 

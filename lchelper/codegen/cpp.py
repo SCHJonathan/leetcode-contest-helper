@@ -342,8 +342,8 @@ const int RANGE = 1e9+7;
                                 decl_assign(func_sig.return_type, ret_ans_var, to_val(ex.output, func_sig.return_type)),
                                 decl_assign(func_sig.return_type, ret_name,
                                             f"{instance_name}.{call(ex.function, args)}"),
-                                f"debug(\"Expected: \", {ret_ans_var}, \"My Answer: \", {ret_name});" 
-                                # f"cout << \" Expected:\" << {ret_ans_var} << \" My Answer:\" << {ret_name} << endl;" 
+                                # f"cout << \"Expected: \" << {ret_ans_var} << \" My Answer: \", {ret_name});"
+                                f"cout << \" Expected:\" << {ret_ans_var} << \" My Answer:\" << {ret_name} << endl;"
                                 # call("test", [to_str(f"{problem.name} - Example {idx} - Interaction {ex_idx}"),
                                 #               ret_ans_var, ret_name]) + ";",
                             ]
@@ -379,8 +379,9 @@ const int RANGE = 1e9+7;
                 stmts = [
                     decl_assign(func_sig.return_type, ret_ans_var, to_val(example.output, func_sig.return_type)),
                     decl_assign(func_sig.return_type, ret_name, f"{instance_name}.{call(func_sig.name, args)}"),
-                    f"debug(\"Expected: \", {ret_ans_var}, \"My Answer: \", {ret_name});"
+                    # f"debug(\"Expected: \", {ret_ans_var}, \"My Answer: \", {ret_name});"
                     # call("test", [to_str(f"{problem.name} - Example {idx}"), ret_ans_var, ret_name]) + ";",
+                    f"cout << \" Expected:\" << {ret_ans_var} << \" My Answer:\" << {ret_name} << endl;"
                 ]
                 statements.extend(stmts)
 
