@@ -211,6 +211,7 @@ class CppCodeGen(CodeGen):
 #include <stack>
 #include <queue>
 #include <vector>
+#include <array>
 #include <map>
 #include <unordered_map>
 #include <set>
@@ -224,7 +225,11 @@ using namespace std;
 
 #define pll pair<ll, ll>
 #define pull pair<ull, ull>
-#define pint pair<int, int> 
+#define pint pair<int, int>
+
+#define vint vector<int>
+#define vll vector<int>
+#define vull vector<int> 
 
 void __print(int x) {cerr << x;}
 void __print(long x) {cerr << x;}
