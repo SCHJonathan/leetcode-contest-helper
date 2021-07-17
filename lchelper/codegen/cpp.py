@@ -194,8 +194,10 @@ TreeNode *_construct_tree(const vector<int> &parent) {
 #include <unordered_set>
 #include <algorithm>
 
+#ifdef JONATHAN
 #include "_testing.h"
 #include "_boilerplate.hpp"
+#endif
 
 using namespace std;
 
