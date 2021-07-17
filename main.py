@@ -174,13 +174,15 @@ def main():
         user = candidates[0]
         cookie_path = lchelper.get_cookie_path(user.username, user.site)
         url = f"https://{user.site}.com/problems/{problem_name}"
+        if 'challenge/card' in args.url:
+            url = args.url
         lchelper.log(f"User: {user}, URL: {url}")
 
         problem = lchelper.get_problem(url, user.site, cookie_path)
 
         for lang in args.lang:
             codegen = lchelper.create_codegen(lang)
-            project_path = os.path.join(args.output, f"{problem_name}_{lang}")
+            project_path = os.path.join(args.output, f"{problem.name}_{lang}")
             codegen.create_project_single_problem(project_path, problem, site, debug=args.debug)
             lchelper.log(f"Project in language '{lang}' stored at: {project_path}", "success")
 

@@ -134,7 +134,9 @@ def get_problem(problem_url: str, site: str, cookie_path: str) -> Problem:
     browser.get(problem_url)
     try:
         # Page during contest; editor located below statement.
-        statement_css_selector = "div[class='content__u3I1 question-content__JfgR'"
+        statement_css_selector = "div[class='content__u3I1 question-content__JfgR']"
+        if '/challenge/card' in problem_url:
+            statement_css_selector = "div[class='question-description__3U1T']"
         code_css_selector = "pre.CodeMirror-line"
         log(f"start find element")
         statement = browser.find_element_by_css_selector(statement_css_selector).text
@@ -148,9 +150,13 @@ def get_problem(problem_url: str, site: str, cookie_path: str) -> Problem:
         elem.text for elem in browser.find_elements_by_css_selector("pre:not([class])") if elem.text]
     # TODO: Should make sure C++ is selected!
     code = [elem.text for elem in browser.find_elements_by_css_selector(code_css_selector)]
-    problem_words = problem_url.rstrip('/').split('/')[-1].split('-')
-    problem_words[0] = problem_words[0][0].upper()
-    problem_name = ' '.join(problem_words)
+    if '/challenge/card' in problem_url:
+        problem_name = browser.find_element_by_css_selector("div[class='question-title']").text
+        problem_name = '_'.join(problem_name.strip().lower().split(' '))
+    else:
+        problem_words = problem_url.rstrip('/').split('/')[-1].split('-')
+        problem_words[0] = problem_words[0][0].upper()
+        problem_name = ' '.join(problem_words)
     problem = Problem(problem_url, problem_name, statement, examples, code)
     log(f"Parsed problem: {problem_name}")
     browser.quit()

@@ -28,157 +28,133 @@ class CppCodeGen(CodeGen):
     def extra_files(self) -> Dict[str, str]:
         return {
             # A header-only library for comparing outputs.
-#             "_testing.h": r"""
-# #ifndef TESTING_H
-# #define TESTING_H
+            "_testing.h": r"""
+#ifndef TESTING_H
+#define TESTING_H
 
-# #include <iostream>
-# #include <vector>
+#include <iostream>
+#include <vector>
 
-# template <typename T>
-# void print(const T &x) { std::cout << x; }
+template <typename T>
+void print(const T &x) { std::cout << x; }
 
-# template <typename T>
-# void print(const std::vector<T> &vec) {
-#     for (int i = 0; i < vec.size(); ++i) {
-#         std::cout << (i == 0 ? "{" : ", ");
-#         print(vec[i]);
-#     }
-#     std::cout << "}";
-# }
+template <typename T>
+void print(const std::vector<T> &vec) {
+    std::cout << "{";
+    for (int i = 0; i < vec.size(); ++i) {
+        if (i > 0) std::cout << ", ";
+        print(vec[i]);
+    }
+    std::cout << "}";
+}
 
-# template <>
-# void print(const bool &x) { std::cout << (x ? "true" : "false"); }
+template <>
+void print(const bool &x) { std::cout << (x ? "true" : "false"); }
 
-# template <typename T>
-# inline bool _test(const T &a, const T &b) {
-#     return a == b;
-# }
+template <typename T>
+inline bool _test(const T &a, const T &b) {
+    return a == b;
+}
 
-# template <typename T>
-# inline bool _test(const std::vector<T> &a, const std::vector<T> &b) {
-#     if (a.size() != b.size()) return false;
-#     for (int i = 0; i < a.size(); ++i)
-#         if (!_test(a[i], b[i])) return false;
-#     return true;
-# }
+template <typename T>
+inline bool _test(const std::vector<T> &a, const std::vector<T> &b) {
+    if (a.size() != b.size()) return false;
+    for (int i = 0; i < a.size(); ++i)
+        if (!_test(a[i], b[i])) return false;
+    return true;
+}
 
-# template <typename T>
-# inline void test(const char *msg, const T &a, const T &b) {
-#     if (_test(a, b)) {
-#         std::cout << msg << " [OK]" << std::endl;
-#     } else {
-#         std::cout << msg << " [WRONG]" << std::endl;
-#         std::cout << "Expected: ";
-#         print(a);
-#         std::cout << std::endl << "Received: ";
-#         print(b);
-#         std::cout << std::endl;
-#     }
-# }
+template <typename T>
+inline void test(const char *msg, const T &a, const T &b) {
+    if (_test(a, b)) {
+        std::cout << msg << "\033[1;31m [OK]\033[0m" << std::endl;
+        std::cout << "Expected: ";
+        print(a);
+        std::cout << std::endl << "Received: ";
+        print(b);
+        std::cout << std::endl;
+    } else {
+        std::cout << msg << "\033[1;31m [WRONG]\033[0m" << std::endl;
+        std::cout << "Expected: ";
+        print(a);
+        std::cout << std::endl << "Received: ";
+        print(b);
+        std::cout << std::endl;
+    }
+}
 
-# #endif  // TESTING_H
-# """,
+#endif  // TESTING_H
+""",
             # Boilerplate code for supporting LeetCode-specific constructs.
-#             "_boilerplate.hpp": r"""
-# #include <algorithm>
-# #include <bitset>
-# #include <complex>
-# #include <fstream>
-# #include <functional>
-# #include <iomanip>
-# #include <ios>
-# #include <iostream>
-# #include <map>
-# #include <numeric>
-# #include <queue>
-# #include <random>
-# #include <set>
-# #include <stack>
-# #include <string>
-# #include <tuple>
-# #include <utility>
-# #include <vector>
+            "_boilerplate.hpp": r"""
+#include <algorithm>
+#include <bitset>
+#include <complex>
+#include <fstream>
+#include <functional>
+#include <iomanip>
+#include <ios>
+#include <iostream>
+#include <map>
+#include <numeric>
+#include <queue>
+#include <random>
+#include <set>
+#include <stack>
+#include <string>
+#include <tuple>
+#include <utility>
+#include <vector>
 
-# #include <cmath>
-# #include <climits>
-# #include <cstdarg>
-# #include <cstdio>
-# #include <cstdlib>
-# #include <cstring>
-# #include <ctime>
+#include <cmath>
+#include <climits>
+#include <cstdarg>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <ctime>
 
-# #include "_testing.h"
-
-# using namespace std;
+using namespace std;
 
 
-# struct TreeNode {
-#     int val;
-#     TreeNode *left;
-#     TreeNode *right;
-#     TreeNode(int x) : val(x), left(NULL), right(NULL) {}
-#     ~TreeNode() {
-#         if (left != NULL) delete left;
-#         if (right != NULL) delete right;
-#     }
-# };
+struct TreeNode {
+    int val;
+    TreeNode *left;
+    TreeNode *right;
+    TreeNode(int x) : val(x), left(NULL), right(NULL) {}
+    ~TreeNode() {
+        if (left != NULL) delete left;
+        if (right != NULL) delete right;
+    }
+};
 
-# const int NONE = INT_MIN;
+const int NONE = INT_MIN;
 
-# TreeNode *_construct_tree(const vector<int> &parent) {
-#     queue<TreeNode *> q;
-#     int ptr = 0;
+TreeNode *_construct_tree(const vector<int> &parent) {
+    queue<TreeNode *> q;
+    int ptr = 0;
 
-#     auto _add_node = [&]() -> TreeNode * {
-#         if (ptr >= parent.size()) return nullptr;
-#         int val = parent[ptr++];
-#         if (val == NONE) return nullptr;
-#         auto *p = new TreeNode(val);
-#         q.push(p);
-#         return p;
-#     };
+    auto _add_node = [&]() -> TreeNode * {
+        if (ptr >= parent.size()) return nullptr;
+        int val = parent[ptr++];
+        if (val == NONE) return nullptr;
+        auto *p = new TreeNode(val);
+        q.push(p);
+        return p;
+    };
 
-#     TreeNode *root = _add_node();
-#     while (!q.empty()) {
-#         if (ptr >= parent.size()) break;
-#         TreeNode *p = q.front();
-#         q.pop();
-#         p->left = _add_node();
-#         p->right = _add_node();
-#     }
-#     return root;
-# }
+    TreeNode *root = _add_node();
+    while (!q.empty()) {
+        if (ptr >= parent.size()) break;
+        TreeNode *p = q.front();
+        q.pop();
+        p->left = _add_node();
+        p->right = _add_node();
+    }
+    return root;
+}
 
-# #ifdef LEETCODE_LOCAL
-# template <typename T>
-# void print(T *a, int n) {
-#     for (int i = 1; i < n; ++i)
-#         std::cout << a[i] << " ";
-#     std::cout << a[n] << std::endl;
-# }
-
-# #define PRINT(__l, __r, __s, __t) {                     \
-#     std::cout << #__l #__s << "~" << #__t #__r << ": "; \
-#     for (auto __i = __s; __i != __t; ++__i)             \
-#         std::cout << __l __i __r << " ";                \
-#     std::cout << std::endl;                             \
-# }
-
-# template <typename ...Args>
-# void debug(Args ...args);
-
-# template <>
-# void debug() { std::cout << std::endl; }
-
-# template <typename T, typename ...Args>
-# void debug(const T &x, Args ...args) {
-#     print(x);
-#     std::cout << " ";
-#     debug(args...);
-# }
-# #endif  // LEETCODE_LOCAL
-# """,
+""",
         }
 
     @property
@@ -217,6 +193,9 @@ class CppCodeGen(CodeGen):
 #include <set>
 #include <unordered_set>
 #include <algorithm>
+
+#include "_testing.h"
+#include "_boilerplate.hpp"
 
 using namespace std;
 
@@ -348,9 +327,9 @@ const int RANGE = 1e9+7;
                                 decl_assign(func_sig.return_type, ret_name,
                                             f"{instance_name}.{call(ex.function, args)}"),
                                 # f"cout << \"Expected: \" << {ret_ans_var} << \" My Answer: \", {ret_name});"
-                                f"cout << \" Expected:\" << {ret_ans_var} << \" My Answer:\" << {ret_name} << endl;"
-                                # call("test", [to_str(f"{problem.name} - Example {idx} - Interaction {ex_idx}"),
-                                #               ret_ans_var, ret_name]) + ";",
+                                # f"cout << \" Expected:\" << {ret_ans_var} << \" My Answer:\" << {ret_name} << endl;"
+                                call("test", [to_str(f"Example - {idx} - Interaction {ex_idx}"),
+                                              ret_ans_var, ret_name]) + ";",
                             ]
                             statements.extend(stmts)
                         else:
@@ -385,8 +364,8 @@ const int RANGE = 1e9+7;
                     decl_assign(func_sig.return_type, ret_ans_var, to_val(example.output, func_sig.return_type)),
                     decl_assign(func_sig.return_type, ret_name, f"{instance_name}.{call(func_sig.name, args)}"),
                     # f"debug(\"Expected: \", {ret_ans_var}, \"My Answer: \", {ret_name});"
-                    # call("test", [to_str(f"{problem.name} - Example {idx}"), ret_ans_var, ret_name]) + ";",
-                    f"cout << \" Expected:\" << {ret_ans_var} << \" My Answer:\" << {ret_name} << endl;"
+                    call("test", [to_str(f"Example - {idx}"), ret_ans_var, ret_name]) + ";",
+                    # f"cout << \" Expected:\" << {ret_ans_var} << \" My Answer:\" << {ret_name} << endl;"
                 ]
                 statements.extend(stmts)
 

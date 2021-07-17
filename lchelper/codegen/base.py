@@ -264,3 +264,6 @@ class CodeGen(abc.ABC):
                 raise
             traceback.print_exc()
             log(f"Exception occurred while processing \"{problem.name}\"", "error")
+        for tmpl_name, tmpl_code in self.extra_files.items():
+            with open(os.path.join(project_path, tmpl_name), "w") as f:
+                f.write(tmpl_code.strip() + "\n")
