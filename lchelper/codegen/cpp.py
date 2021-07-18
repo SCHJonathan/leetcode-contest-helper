@@ -77,7 +77,7 @@ inline bool _test(const std::vector<T> &a, const std::vector<T> &b) {
 template <typename T>
 inline void test(const char *msg, const T &a, const T &b) {
     if (_test(a, b)) {
-        std::cout << msg << "\033[1;31m [OK]\033[0m" << std::endl;
+        std::cout << msg << "\033[1;32m [OK]\033[0m" << std::endl;
         std::cout << "Expected: ";
         print(a);
         std::cout << std::endl << "Received: ";
