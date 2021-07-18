@@ -254,6 +254,7 @@ class CodeGen(abc.ABC):
                 "TEST": test_code,
             })
             in_txt_path = os.path.join(project_path, 'in.txt')
+            problem.name = '_'.join(problem.name.strip().lower().split(' '))
             code_path = os.path.join(project_path, f'{problem.name}.cc')
             transformer_path = os.path.join(project_path, 'transformer.py')
             self.write_and_backup(in_txt_path, "")

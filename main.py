@@ -182,6 +182,7 @@ def main():
 
         for lang in args.lang:
             codegen = lchelper.create_codegen(lang)
+            problem.name = '_'.join(problem.name.strip().lower().split(' '))
             project_path = os.path.join(args.output, f"{problem.name}_{lang}")
             codegen.create_project_single_problem(project_path, problem, site, debug=args.debug)
             lchelper.log(f"Project in language '{lang}' stored at: {project_path}", "success")
