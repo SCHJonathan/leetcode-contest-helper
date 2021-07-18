@@ -34,6 +34,7 @@ class CppCodeGen(CodeGen):
 
 #include <iostream>
 #include <vector>
+#include "_boilerplate.hpp"
 
 template <typename T>
 void print(const T &x) { std::cout << x; }
@@ -44,6 +45,15 @@ void print(const std::vector<T> &vec) {
     for (int i = 0; i < vec.size(); ++i) {
         if (i > 0) std::cout << ", ";
         print(vec[i]);
+    }
+    std::cout << "}";
+}
+
+void print(ListNode* node) {
+    std::cout << "{";
+    for (ListNode* thru = node; thru; thru = thru->next) {
+        std::cout << thru->val;
+        if (thru->next) std::cout << " -> ";
     }
     std::cout << "}";
 }
@@ -116,6 +126,13 @@ inline void test(const char *msg, const T &a, const T &b) {
 
 using namespace std;
 
+struct ListNode {
+    int val;
+    ListNode *next;
+    ListNode() : val(0), next(nullptr) {}
+    ListNode(int x) : val(x), next(nullptr) {}
+    ListNode(int x, ListNode *next) : val(x), next(next) {}
+};
 
 struct TreeNode {
     int val;
@@ -153,7 +170,6 @@ TreeNode *_construct_tree(const vector<int> &parent) {
     }
     return root;
 }
-
 """,
         }
 
