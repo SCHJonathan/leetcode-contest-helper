@@ -212,7 +212,6 @@ TreeNode *_construct_tree(const vector<int> &parent) {
 
 #ifdef JONATHAN
 #include "_testing.h"
-#include "_boilerplate.hpp"
 #endif
 
 using namespace std;
