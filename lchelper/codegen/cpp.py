@@ -37,29 +37,29 @@ class CppCodeGen(CodeGen):
 #include "_boilerplate.hpp"
 
 template <typename T>
-void print(const T &x) { std::cout << x; }
+void print(const T &x) { std::cerr << x; }
 
 template <typename T>
 void print(const std::vector<T> &vec) {
-    std::cout << "{";
+    std::cerr << "{";
     for (int i = 0; i < vec.size(); ++i) {
-        if (i > 0) std::cout << ", ";
+        if (i > 0) std::cerr << ", ";
         print(vec[i]);
     }
-    std::cout << "}";
+    std::cerr << "}";
 }
 
 void print(ListNode* node) {
-    std::cout << "{";
+    std::cerr << "{";
     for (ListNode* thru = node; thru; thru = thru->next) {
-        std::cout << thru->val;
-        if (thru->next) std::cout << " -> ";
+        std::cerr << thru->val;
+        if (thru->next) std::cerr << " -> ";
     }
-    std::cout << "}";
+    std::cerr << "}";
 }
 
 template <>
-void print(const bool &x) { std::cout << (x ? "true" : "false"); }
+void print(const bool &x) { std::cerr << (x ? "true" : "false"); }
 
 template <typename T>
 inline bool _test(const T &a, const T &b) {
@@ -77,19 +77,19 @@ inline bool _test(const std::vector<T> &a, const std::vector<T> &b) {
 template <typename T>
 inline void test(const char *msg, const T &a, const T &b) {
     if (_test(a, b)) {
-        std::cout << msg << "\033[1;32m [OK]\033[0m" << std::endl;
-        std::cout << "Expected: ";
+        std::cerr << msg << "\033[1;32m [OK]\033[0m" << std::endl;
+        std::cerr << "Expected: ";
         print(a);
-        std::cout << std::endl << "Received: ";
+        std::cerr << std::endl << "Received: ";
         print(b);
-        std::cout << std::endl;
+        std::cerr << std::endl;
     } else {
-        std::cout << msg << "\033[1;31m [WRONG]\033[0m" << std::endl;
-        std::cout << "Expected: ";
+        std::cerr << msg << "\033[1;31m [WRONG]\033[0m" << std::endl;
+        std::cerr << "Expected: ";
         print(a);
-        std::cout << std::endl << "Received: ";
+        std::cerr << std::endl << "Received: ";
         print(b);
-        std::cout << std::endl;
+        std::cerr << std::endl;
     }
 }
 
