@@ -4,6 +4,7 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 
 from lchelper.codegen.base import Code, CodeGen, Signature
 from lchelper.common import *
+from lchelper.logging import log
 from lchelper.utils import remove_affix
 
 __all__ = [
@@ -224,8 +225,8 @@ using namespace std;
 #define pint pair<int, int>
 
 #define vint vector<int>
-#define vll vector<int>
-#define vull vector<int> 
+#define vll vector<ll>
+#define vull vector<ull> 
 
 void __print(int x) {cerr << x;}
 void __print(long x) {cerr << x;}
@@ -279,6 +280,8 @@ const int RANGE = 1e9+7;
 
         def to_val(val: Any, type_name: str) -> str:
             if type_name.replace(' ', '') == "TreeNode*":
+                if not isinstance(val, list):
+                    val = [val]
                 return to_tree(val)
             return to_str(val)
 
