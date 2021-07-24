@@ -29,149 +29,149 @@ class CppCodeGen(CodeGen):
     def extra_files(self) -> Dict[str, str]:
         return {
             # A header-only library for comparing outputs.
-            "_testing.h": r"""
-#ifndef TESTING_H
-#define TESTING_H
-
-#include <iostream>
-#include <vector>
-#include "_boilerplate.hpp"
-
-template <typename T>
-void print(const T &x) { std::cerr << x; }
-
-template <typename T>
-void print(const std::vector<T> &vec) {
-    std::cerr << "{";
-    for (int i = 0; i < vec.size(); ++i) {
-        if (i > 0) std::cerr << ", ";
-        print(vec[i]);
-    }
-    std::cerr << "}";
-}
-
-void print(ListNode* node) {
-    std::cerr << "{";
-    for (ListNode* thru = node; thru; thru = thru->next) {
-        std::cerr << thru->val;
-        if (thru->next) std::cerr << " -> ";
-    }
-    std::cerr << "}";
-}
-
-template <>
-void print(const bool &x) { std::cerr << (x ? "true" : "false"); }
-
-template <typename T>
-inline bool _test(const T &a, const T &b) {
-    return a == b;
-}
-
-template <typename T>
-inline bool _test(const std::vector<T> &a, const std::vector<T> &b) {
-    if (a.size() != b.size()) return false;
-    for (int i = 0; i < a.size(); ++i)
-        if (!_test(a[i], b[i])) return false;
-    return true;
-}
-
-template <typename T>
-inline void test(const char *msg, const T &a, const T &b) {
-    if (_test(a, b)) {
-        std::cerr << msg << "\033[1;32m [OK]\033[0m" << std::endl;
-        std::cerr << "Expected: ";
-        print(a);
-        std::cerr << std::endl << "Received: ";
-        print(b);
-        std::cerr << std::endl;
-    } else {
-        std::cerr << msg << "\033[1;31m [WRONG]\033[0m" << std::endl;
-        std::cerr << "Expected: ";
-        print(a);
-        std::cerr << std::endl << "Received: ";
-        print(b);
-        std::cerr << std::endl;
-    }
-}
-
-#endif  // TESTING_H
+            # "_testing.h": r"""
+# #ifndef TESTING_H
+# #define TESTING_H
+#
+# #include <iostream>
+# #include <vector>
+# #include "_boilerplate.hpp"
+#
+# template <typename T>
+# void print(const T &x) { std::cerr << x; }
+#
+# template <typename T>
+# void print(const std::vector<T> &vec) {
+#     std::cerr << "{";
+#     for (int i = 0; i < vec.size(); ++i) {
+#         if (i > 0) std::cerr << ", ";
+#         print(vec[i]);
+#     }
+#     std::cerr << "}";
+# }
+#
+# void print(ListNode* node) {
+#     std::cerr << "{";
+#     for (ListNode* thru = node; thru; thru = thru->next) {
+#         std::cerr << thru->val;
+#         if (thru->next) std::cerr << " -> ";
+#     }
+#     std::cerr << "}";
+# }
+#
+# template <>
+# void print(const bool &x) { std::cerr << (x ? "true" : "false"); }
+#
+# template <typename T>
+# inline bool _test(const T &a, const T &b) {
+#     return a == b;
+# }
+#
+# template <typename T>
+# inline bool _test(const std::vector<T> &a, const std::vector<T> &b) {
+#     if (a.size() != b.size()) return false;
+#     for (int i = 0; i < a.size(); ++i)
+#         if (!_test(a[i], b[i])) return false;
+#     return true;
+# }
+#
+# template <typename T>
+# inline void test(const char *msg, const T &a, const T &b) {
+#     if (_test(a, b)) {
+#         std::cerr << msg << "\033[1;32m [OK]\033[0m" << std::endl;
+#         std::cerr << "Expected: ";
+#         print(a);
+#         std::cerr << std::endl << "Received: ";
+#         print(b);
+#         std::cerr << std::endl;
+#     } else {
+#         std::cerr << msg << "\033[1;31m [WRONG]\033[0m" << std::endl;
+#         std::cerr << "Expected: ";
+#         print(a);
+#         std::cerr << std::endl << "Received: ";
+#         print(b);
+#         std::cerr << std::endl;
+#     }
+# }
+#
+# #endif  // TESTING_H
 """,
             # Boilerplate code for supporting LeetCode-specific constructs.
-            "_boilerplate.hpp": r"""
-#include <algorithm>
-#include <bitset>
-#include <complex>
-#include <fstream>
-#include <functional>
-#include <iomanip>
-#include <ios>
-#include <iostream>
-#include <map>
-#include <numeric>
-#include <queue>
-#include <random>
-#include <set>
-#include <stack>
-#include <string>
-#include <tuple>
-#include <utility>
-#include <vector>
-
-#include <cmath>
-#include <climits>
-#include <cstdarg>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
-#include <ctime>
-
-using namespace std;
-
-struct ListNode {
-    int val;
-    ListNode *next;
-    ListNode() : val(0), next(nullptr) {}
-    ListNode(int x) : val(x), next(nullptr) {}
-    ListNode(int x, ListNode *next) : val(x), next(next) {}
-};
-
-struct TreeNode {
-    int val;
-    TreeNode *left;
-    TreeNode *right;
-    TreeNode(int x) : val(x), left(NULL), right(NULL) {}
-    ~TreeNode() {
-        if (left != NULL) delete left;
-        if (right != NULL) delete right;
-    }
-};
-
-const int NONE = INT_MIN;
-
-TreeNode *_construct_tree(const vector<int> &parent) {
-    queue<TreeNode *> q;
-    int ptr = 0;
-
-    auto _add_node = [&]() -> TreeNode * {
-        if (ptr >= parent.size()) return nullptr;
-        int val = parent[ptr++];
-        if (val == NONE) return nullptr;
-        auto *p = new TreeNode(val);
-        q.push(p);
-        return p;
-    };
-
-    TreeNode *root = _add_node();
-    while (!q.empty()) {
-        if (ptr >= parent.size()) break;
-        TreeNode *p = q.front();
-        q.pop();
-        p->left = _add_node();
-        p->right = _add_node();
-    }
-    return root;
-}
-""",
+#             "_boilerplate.hpp": r"""
+# #include <algorithm>
+# #include <bitset>
+# #include <complex>
+# #include <fstream>
+# #include <functional>
+# #include <iomanip>
+# #include <ios>
+# #include <iostream>
+# #include <map>
+# #include <numeric>
+# #include <queue>
+# #include <random>
+# #include <set>
+# #include <stack>
+# #include <string>
+# #include <tuple>
+# #include <utility>
+# #include <vector>
+#
+# #include <cmath>
+# #include <climits>
+# #include <cstdarg>
+# #include <cstdio>
+# #include <cstdlib>
+# #include <cstring>
+# #include <ctime>
+#
+# using namespace std;
+#
+# struct ListNode {
+#     int val;
+#     ListNode *next;
+#     ListNode() : val(0), next(nullptr) {}
+#     ListNode(int x) : val(x), next(nullptr) {}
+#     ListNode(int x, ListNode *next) : val(x), next(next) {}
+# };
+#
+# struct TreeNode {
+#     int val;
+#     TreeNode *left;
+#     TreeNode *right;
+#     TreeNode(int x) : val(x), left(NULL), right(NULL) {}
+#     ~TreeNode() {
+#         if (left != NULL) delete left;
+#         if (right != NULL) delete right;
+#     }
+# };
+#
+# const int NONE = INT_MIN;
+#
+# TreeNode *_construct_tree(const vector<int> &parent) {
+#     queue<TreeNode *> q;
+#     int ptr = 0;
+#
+#     auto _add_node = [&]() -> TreeNode * {
+#         if (ptr >= parent.size()) return nullptr;
+#         int val = parent[ptr++];
+#         if (val == NONE) return nullptr;
+#         auto *p = new TreeNode(val);
+#         q.push(p);
+#         return p;
+#     };
+#
+#     TreeNode *root = _add_node();
+#     while (!q.empty()) {
+#         if (ptr >= parent.size()) break;
+#         TreeNode *p = q.front();
+#         q.pop();
+#         p->left = _add_node();
+#         p->right = _add_node();
+#     }
+#     return root;
+# }
+# """,
         }
 
     @property
@@ -262,13 +262,13 @@ const int RANGE = 1e9+7;
         # Generate solution code as the crawled template.
         solution_code = problem.code.copy()
 
-        def to_str(val: Any) -> str:
+        def to_str(val: Any, type_name_input=None) -> str:
             if isinstance(val, list):
                 return "{" + ", ".join(to_str(x) for x in val) + "}"
             if isinstance(val, str):
-                if len(val) == 1:
-                    return f"'{val}'"
-                return f'"{val}"'
+                if type_name_input is None or type_name_input == 'string':
+                    return f'"{val}"'
+                return f"'{val}'"
             if isinstance(val, bool):  # bool is a subtype of int
                 return "true" if val else "false"
             if isinstance(val, (int, float)):
@@ -283,7 +283,7 @@ const int RANGE = 1e9+7;
                 if not isinstance(val, list):
                     val = [val]
                 return to_tree(val)
-            return to_str(val)
+            return to_str(val, type_name)
 
         def to_args(input: Dict[str, Any], func_sig: FunctionSignature) -> List[str]:
             # Return list of assignments.

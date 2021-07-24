@@ -28,6 +28,150 @@ with in_place.InPlace('in.txt') as file:
 
 """
 
+Boilerplate_Code = r"""
+#include <algorithm>
+#include <bitset>
+#include <complex>
+#include <fstream>
+#include <functional>
+#include <iomanip>
+#include <ios>
+#include <iostream>
+#include <map>
+#include <numeric>
+#include <queue>
+#include <random>
+#include <set>
+#include <stack>
+#include <string>
+#include <tuple>
+#include <utility>
+#include <vector>
+
+#include <cmath>
+#include <climits>
+#include <cstdarg>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
+#include <ctime>
+
+using namespace std;
+
+struct ListNode {
+    int val;
+    ListNode *next;
+    ListNode() : val(0), next(nullptr) {}
+    ListNode(int x) : val(x), next(nullptr) {}
+    ListNode(int x, ListNode *next) : val(x), next(next) {}
+};
+
+struct TreeNode {
+    int val;
+    TreeNode *left;
+    TreeNode *right;
+    TreeNode(int x) : val(x), left(NULL), right(NULL) {}
+    ~TreeNode() {
+        if (left != NULL) delete left;
+        if (right != NULL) delete right;
+    }
+};
+
+const int NONE = INT_MIN;
+
+TreeNode *_construct_tree(const vector<int> &parent) {
+    queue<TreeNode *> q;
+    int ptr = 0;
+
+    auto _add_node = [&]() -> TreeNode * {
+        if (ptr >= parent.size()) return nullptr;
+        int val = parent[ptr++];
+        if (val == NONE) return nullptr;
+        auto *p = new TreeNode(val);
+        q.push(p);
+        return p;
+    };
+
+    TreeNode *root = _add_node();
+    while (!q.empty()) {
+        if (ptr >= parent.size()) break;
+        TreeNode *p = q.front();
+        q.pop();
+        p->left = _add_node();
+        p->right = _add_node();
+    }
+    return root;
+}
+"""
+
+Testing_Code = r"""
+#ifndef TESTING_H
+#define TESTING_H
+
+#include <iostream>
+#include <vector>
+#include "_boilerplate.hpp"
+
+template <typename T>
+void print(const T &x) { std::cerr << x; }
+
+template <typename T>
+void print(const std::vector<T> &vec) {
+    std::cerr << "{";
+    for (int i = 0; i < vec.size(); ++i) {
+        if (i > 0) std::cerr << ", ";
+        print(vec[i]);
+    }
+    std::cerr << "}";
+}
+
+void print(ListNode* node) {
+    std::cerr << "{";
+    for (ListNode* thru = node; thru; thru = thru->next) {
+        std::cerr << thru->val;
+        if (thru->next) std::cerr << " -> ";
+    }
+    std::cerr << "}";
+}
+
+template <>
+void print(const bool &x) { std::cerr << (x ? "true" : "false"); }
+
+template <typename T>
+inline bool _test(const T &a, const T &b) {
+    return a == b;
+}
+
+template <typename T>
+inline bool _test(const std::vector<T> &a, const std::vector<T> &b) {
+    if (a.size() != b.size()) return false;
+    for (int i = 0; i < a.size(); ++i)
+        if (!_test(a[i], b[i])) return false;
+    return true;
+}
+
+template <typename T>
+inline void test(const char *msg, const T &a, const T &b) {
+    if (_test(a, b)) {
+        std::cerr << msg << "\033[1;32m [OK]\033[0m" << std::endl;
+        std::cerr << "Expected: ";
+        print(a);
+        std::cerr << std::endl << "Received: ";
+        print(b);
+        std::cerr << std::endl;
+    } else {
+        std::cerr << msg << "\033[1;31m [WRONG]\033[0m" << std::endl;
+        std::cerr << "Expected: ";
+        print(a);
+        std::cerr << std::endl << "Received: ";
+        print(b);
+        std::cerr << std::endl;
+    }
+}
+
+#endif  // TESTING_H
+"""
+
 T = TypeVar('T')
 Signature = Union[ProblemSignature, InteractiveProblemSignature]
 Code = List[str]
@@ -223,9 +367,13 @@ class CodeGen(abc.ABC):
                     os.makedirs(code_dir_path)
                 in_txt_path = os.path.join(project_path, get_problem_file_dir(idx)+'/in.txt')
                 code_path = os.path.join(project_path, self.get_problem_file_name(idx, problem))
-                transformer_path = os.path.join(project_path, get_problem_file_dir(idx)+'/transformer.py')
+                boilerplate_path = os.path.join(project_path, get_problem_file_dir(idx)+'/_boilerplate.hpp')
+                testing_path = os.path.join(project_path, get_problem_file_dir(idx) + '/_testing.h')
+                transformer_path = os.path.join(project_path, get_problem_file_dir(idx) + '/transformer.py')
                 self.write_and_backup(in_txt_path, "")
                 self.write_and_backup(transformer_path, Transformer_code)
+                self.write_and_backup(boilerplate_path, Boilerplate_Code)
+                self.write_and_backup(testing_path, Testing_Code)
                 self.write_and_backup(code_path, "\n".join(problem_code) + "\n")
             except Exception:
                 if debug:
@@ -233,9 +381,9 @@ class CodeGen(abc.ABC):
                 traceback.print_exc()
                 log(f"Exception occurred while processing \"{problem.name}\"", "error")
 
-        for tmpl_name, tmpl_code in self.extra_files.items():
-            with open(os.path.join(project_path, tmpl_name), "w") as f:
-                f.write(tmpl_code.strip() + "\n")
+        # for tmpl_name, tmpl_code in self.extra_files.items():
+        #     with open(os.path.join(project_path, tmpl_name), "w") as f:
+        #         f.write(tmpl_code.strip() + "\n")
 
     def create_project_single_problem(self, project_path: str, problem: Problem, site: str, debug: bool = False) -> None:
         if not os.path.exists(project_path):
@@ -265,6 +413,6 @@ class CodeGen(abc.ABC):
                 raise
             traceback.print_exc()
             log(f"Exception occurred while processing \"{problem.name}\"", "error")
-        for tmpl_name, tmpl_code in self.extra_files.items():
-            with open(os.path.join(project_path, tmpl_name), "w") as f:
-                f.write(tmpl_code.strip() + "\n")
+        # for tmpl_name, tmpl_code in self.extra_files.items():
+        #     with open(os.path.join(project_path, tmpl_name), "w") as f:
+        #         f.write(tmpl_code.strip() + "\n")

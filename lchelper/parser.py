@@ -94,7 +94,7 @@ def parse_problem(problem: Problem, site: str = "leetcode") -> Union[ProblemSign
     # Parse function signature from code.
     class_name, func_signatures = find_functions(problem.code)
     assert len(func_signatures) > 0
-    log(f"func_signatures: {func_signatures}")
+    # log(f"func_signatures: {func_signatures}")
     if len(func_signatures) > 1:
         # Probably an interactive problem, skip for now.
         func_map: Dict[str, FunctionSignature] = {signature.name: signature for signature in func_signatures}
@@ -164,5 +164,4 @@ def parse_problem(problem: Problem, site: str = "leetcode") -> Union[ProblemSign
                 log(f"Problem \"{problem.name}\": Extra characters in example output section:\n{output_str}", "warning")
 
             examples.append(Example(input_vals, output_val))
-
         return ProblemSignature(func_signature, examples)
