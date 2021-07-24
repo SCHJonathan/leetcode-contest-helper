@@ -405,8 +405,13 @@ class CodeGen(abc.ABC):
             problem_name = '_'.join(problem.name.strip().lower().split(' '))
             code_path = os.path.join(project_path, f'{problem_name}.cc')
             transformer_path = os.path.join(project_path, 'transformer.py')
+            boilerplate_path = os.path.join(project_path, '_boilerplate.hpp')
+            testing_path = os.path.join(project_path, '_testing.h')
+            self.write_and_backup(boilerplate_path, Boilerplate_Code)
+            self.write_and_backup(testing_path, Testing_Code)
             self.write_and_backup(in_txt_path, "")
             self.write_and_backup(transformer_path, Transformer_code)
+
             self.write_and_backup(code_path, "\n".join(problem_code) + "\n")
         except Exception:
             if debug:
