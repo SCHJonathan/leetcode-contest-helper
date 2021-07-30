@@ -15,8 +15,7 @@ __all__ = [
     "CodeGen",
 ]
 
-Transformer_code = """
-import in_place
+Transformer_code = """import in_place
 
 f = open('in.txt')
 
@@ -24,8 +23,8 @@ with in_place.InPlace('in.txt') as file:
     for line in file:
         line = line.replace('[', '{')
         line = line.replace(']', '}')
+        line = line.replace('null', 'INT_MIN')
         file.write(line)
-
 """
 
 Boilerplate_Code = r"""
@@ -178,7 +177,7 @@ Code = List[str]
 
 
 def get_problem_dir(idx: int, problem: Problem) -> str:
-    return f"{chr(ord('A') + idx)}"
+    return f"{chr(ord('A') + idx)}-{problem.name}"
 
 
 def format_statement(problem: Problem) -> List[str]:
@@ -375,11 +374,11 @@ class CodeGen(abc.ABC):
                 self.write_and_backup(boilerplate_path, Boilerplate_Code)
                 self.write_and_backup(testing_path, Testing_Code)
                 self.write_and_backup(code_path, "\n".join(problem_code) + "\n")
-            except Exception:
+            except Exception as e:
                 if debug:
                     raise
                 traceback.print_exc()
-                log(f"Exception occurred while processing \"{problem.name}\"", "error")
+                log(f"Exception occurred while processing \"{problem.name}\". exception:{e}")
 
         # for tmpl_name, tmpl_code in self.extra_files.items():
         #     with open(os.path.join(project_path, tmpl_name), "w") as f:
