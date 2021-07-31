@@ -50,6 +50,8 @@ def find_functions(code: List[str]) -> Tuple[str, List[FunctionSignature]]:
             args_str = line[(bracket_pos + 1):line.find(")")].split(",")
             arguments = [parse_vardef(s) for s in args_str if s]
             signatures.append(FunctionSignature(func_name, arguments, return_type))
+    if ':' in class_name:
+        class_name = class_name[:class_name.index(':')-1]
     return class_name, signatures
 
 
