@@ -296,7 +296,10 @@ const int RANGE = 1e9+7;
             return f"{func_name}({', '.join(args)})"
 
         def ctor(class_name: str, obj_name: str, args: List[str]) -> str:
-            return f"{class_name} {call(obj_name, args)};"
+            if len(args) > 0:
+                return f"{class_name} {call(obj_name, args)};"
+            else:
+                return f"{class_name} {obj_name};"
 
         def remove_cv_ref(typ: str) -> str:
             while True:
