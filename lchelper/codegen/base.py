@@ -227,7 +227,7 @@ Code = List[str]
 
 
 def get_problem_dir(idx: int, problem: Problem) -> str:
-    return f"{chr(ord('A') + idx)}-{problem.name}"
+    return f"{chr(ord('A') + idx)}_{problem.name}"
 
 
 def format_statement(problem: Problem) -> List[str]:
@@ -245,13 +245,14 @@ def format_statement(problem: Problem) -> List[str]:
     return ""
 
 
-def get_problem_file_dir(idx: int) -> str:
+def get_problem_file_dir(idx: int, problem: Problem) -> str:
     """Generate the code file name for a problem. By default, names are uppercase letters starting from "A".
 
     :param idx: Zero-based index of the problem.
+    :param problem: The problem object
     :return: The code file name of the problem.
     """
-    return f"{chr(ord('A') + idx)}"
+    return f"{chr(ord('A') + idx)}_{problem.name}"
 
 
 class CodeGen(abc.ABC):
@@ -383,7 +384,7 @@ class CodeGen(abc.ABC):
         :param problem: The description of the problem.
         :return: The code file name of the problem.
         """
-        return f"{chr(ord('A') + idx)}/{chr(ord('A') + idx)}{self.code_extension}"
+        return f"{chr(ord('A') + idx)}_{problem.name}/{problem.name}{self.code_extension}"
 
     def create_project(self, project_path: str, problems: List[Problem], site: str, debug: bool = False) -> None:
         r"""Create the folder for the project and generate code and supporting files.
@@ -414,11 +415,11 @@ class CodeGen(abc.ABC):
                 code_dir_path = os.path.join(project_path, get_problem_dir(idx, problem))
                 if not os.path.exists(code_dir_path):
                     os.makedirs(code_dir_path)
-                in_txt_path = os.path.join(project_path, get_problem_file_dir(idx)+'/in.txt')
+                in_txt_path = os.path.join(project_path, get_problem_file_dir(idx, problem)+'/in.txt')
                 code_path = os.path.join(project_path, self.get_problem_file_name(idx, problem))
-                boilerplate_path = os.path.join(project_path, get_problem_file_dir(idx)+'/_boilerplate.hpp')
-                testing_path = os.path.join(project_path, get_problem_file_dir(idx) + '/_testing.h')
-                transformer_path = os.path.join(project_path, get_problem_file_dir(idx) + '/transformer.py')
+                boilerplate_path = os.path.join(project_path, get_problem_file_dir(idx, problem)+'/_boilerplate.hpp')
+                testing_path = os.path.join(project_path, get_problem_file_dir(idx, problem) + '/_testing.h')
+                transformer_path = os.path.join(project_path, get_problem_file_dir(idx, problem) + '/transformer.py')
                 self.write_and_backup(in_txt_path, "")
                 self.write_and_backup(transformer_path, Transformer_code)
                 self.write_and_backup(boilerplate_path, Boilerplate_Code)

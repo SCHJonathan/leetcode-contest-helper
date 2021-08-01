@@ -180,7 +180,8 @@ def get_problems(contest_url: str, site: str, cookie_path: str) -> List[Problem]
     options.add_argument("headless")
     browser = webdriver.Firefox(service_log_path=os.path.devnull, options=options)
     browser.set_window_position(0, 0)
-    browser.set_window_size(3840, 600)  # a wide enough window so code does not get wrapped
+    browser.maximize_window()
+    # browser.set_window_size(3840, 600)  # a wide enough window so code does not get wrapped
     browser.implicitly_wait(10)
 
     log("Loading LeetCode contest page...")
@@ -218,6 +219,7 @@ def get_problems(contest_url: str, site: str, cookie_path: str) -> List[Problem]
             elem.text for elem in browser.find_elements_by_css_selector("pre:not([class])") if elem.text]
         # TODO: Should make sure C++ is selected!
         code = [elem.text for elem in browser.find_elements_by_css_selector(code_css_selector)]
+        problem_name = '_'.join(problem_name.lower().split(' '))
         problem = Problem(problem_url, problem_name, statement, examples, code)
         parsed_problems.append(problem)
         log(f"Parsed problem ({idx + 1}/{len(problem_paths)}): {problem_name}")
