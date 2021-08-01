@@ -27,7 +27,8 @@ with in_place.InPlace('in.txt') as file:
         file.write(line)
 """
 
-Boilerplate_Code = r"""#include <algorithm>
+Boilerplate_Code = r"""#include <type_traits>
+#include <algorithm>
 #include <bitset>
 #include <complex>
 #include <fstream>
@@ -137,12 +138,9 @@ TreeNode *_construct_tree(const vector<int> &parent) {
 }
 """
 
-Testing_Code = r"""
-#ifndef TESTING_H
+Testing_Code = r"""#ifndef TESTING_H
 #define TESTING_H
 
-#include <iostream>
-#include <vector>
 #include "_boilerplate.hpp"
 
 template <typename T>
@@ -158,6 +156,11 @@ void print(const std::vector<T> &vec) {
     std::cerr << "}";
 }
 
+void print(TreeNode* node) {
+    std::cerr << "{";
+    std::cerr << "}";
+}
+
 void print(ListNode* node) {
     std::cerr << "{";
     for (ListNode* thru = node; thru; thru = thru->next) {
@@ -166,6 +169,15 @@ void print(ListNode* node) {
     }
     std::cerr << "}";
 }
+
+bool isSameTree(const TreeNode* root1, const TreeNode* root2) {
+    if (!root1 && !root2) return true;
+    if ((!root1 && root2) || (!root2 && root1) || (root1->val != root2->val)) return false;
+    bool left = isSameTree(root1->left, root2->left);
+    bool right = isSameTree(root1->right, root2->right);
+    return left&&right;
+}
+
 
 template <>
 void print(const bool &x) { std::cerr << (x ? "true" : "false"); }
@@ -181,6 +193,10 @@ inline bool _test(const std::vector<T> &a, const std::vector<T> &b) {
     for (int i = 0; i < a.size(); ++i)
         if (!_test(a[i], b[i])) return false;
     return true;
+}
+
+inline bool _test(TreeNode* a, TreeNode* b) {
+    return isSameTree(a, b);
 }
 
 template <typename T>
