@@ -199,6 +199,8 @@ class CppCodeGen(CodeGen):
     def user_template_code(self) -> str:
         return r"""#ifdef JONATHAN
 #include "_testing.h"
+#else
+#define debug(x...)
 #endif
 
 #define ll long long
@@ -221,7 +223,10 @@ const int RANGE = 1e9+7;
 
         def to_str(val: Any, type_name_input=None) -> str:
             if isinstance(val, list):
-                return "{" + ", ".join(to_str(x) for x in val) + "}"
+                type_name_input = type_name_input
+                if type_name_input.startswith('vector<'):
+                    type_name_input = type_name_input[7:-1]
+                return "{" + ", ".join(to_val(x, type_name_input) for x in val) + "}"
             if isinstance(val, str):
                 if type_name_input is None or type_name_input == 'string':
                     return f'"{val}"'
@@ -236,11 +241,12 @@ const int RANGE = 1e9+7;
             return f"_construct_tree({{{', '.join('NONE' if x is None else str(x) for x in parent)}}})"
 
         def to_val(val: Any, type_name: str) -> str:
-            if type_name.replace(' ', '') == "TreeNode*":
+            type_name_no_space = type_name.replace(' ', '')
+            if type_name_no_space == "TreeNode*":
                 if not isinstance(val, list):
                     val = [val]
                 return to_tree(val)
-            return to_str(val, type_name)
+            return to_str(val, type_name_no_space)
 
         def to_args(input: Dict[str, Any], func_sig: FunctionSignature) -> List[str]:
             # Return list of assignments.

@@ -64,33 +64,6 @@ Boilerplate_Code = r"""#include <type_traits>
 
 using namespace std;
 
-void __print(int x) {cerr << x;}
-void __print(long x) {cerr << x;}
-void __print(long long x) {cerr << x;}
-void __print(unsigned x) {cerr << x;}
-void __print(unsigned long x) {cerr << x;}
-void __print(unsigned long long x) {cerr << x;}
-void __print(float x) {cerr << x;}
-void __print(double x) {cerr << x;}
-void __print(long double x) {cerr << x;}
-void __print(char x) {cerr << '\'' << x << '\'';}
-void __print(const char *x) {cerr << '\"' << x << '\"';}
-void __print(const string &x) {cerr << '\"' << x << '\"';}
-void __print(bool x) {cerr << (x ? "true" : "false");}
-
-template<typename T, typename V>
-void __print(const pair<T, V> &x) {cerr << '{'; __print(x.first); cerr << ','; __print(x.second); cerr << '}';}
-template<typename T>
-void __print(const T &x) {int f = 0; cerr << '{'; for (auto &i: x) cerr << (f++ ? "," : ""), __print(i); cerr << "}";}
-void _print() {cerr << "]\n";}
-template <typename T, typename... V>
-void _print(T t, V... v) {__print(t); if (sizeof...(v)) cerr << ", "; _print(v...);}
-#ifdef JONATHAN_DEBUG
-#define debug(x...) cerr << "[" << #x << "] = ["; _print(x)
-#else
-#define debug(x...)
-#endif
-
 
 struct ListNode {
     int val;
@@ -136,6 +109,49 @@ TreeNode *_construct_tree(const vector<int> &parent) {
     }
     return root;
 }
+
+void printTree(const std::string& prefix, const TreeNode* node, bool isLeft) {
+    if(node != nullptr) {
+        std::cerr << prefix;
+
+        std::cerr << (isLeft ? "├──" : "└──" );
+
+        // print the value of the node
+        std::cerr << node->val << std::endl;
+
+        // enter the next tree level - left and right branch
+        printTree( prefix + (isLeft ? "│   " : "    "), node->left, true);
+        printTree( prefix + (isLeft ? "│   " : "    "), node->right, false);
+    }
+}
+
+void __print(int x) {cerr << x;}
+void __print(long x) {cerr << x;}
+void __print(long long x) {cerr << x;}
+void __print(unsigned x) {cerr << x;}
+void __print(unsigned long x) {cerr << x;}
+void __print(unsigned long long x) {cerr << x;}
+void __print(float x) {cerr << x;}
+void __print(double x) {cerr << x;}
+void __print(long double x) {cerr << x;}
+void __print(char x) {cerr << '\'' << x << '\'';}
+void __print(const char *x) {cerr << '\"' << x << '\"';}
+void __print(const string &x) {cerr << '\"' << x << '\"';}
+void __print(bool x) {cerr << (x ? "true" : "false");}
+void __print(TreeNode* node) { cerr << endl; printTree("", node, false); }
+
+template<typename T, typename V>
+void __print(const pair<T, V> &x) {cerr << '{'; __print(x.first); cerr << ','; __print(x.second); cerr << '}';}
+template<typename T>
+void __print(const T &x) {int f = 0; cerr << '{'; for (auto &i: x) cerr << (f++ ? "," : ""), __print(i); cerr << "}";}
+void _print() {cerr << "]\n";}
+template <typename T, typename... V>
+void _print(T t, V... v) {__print(t); if (sizeof...(v)) cerr << ", "; _print(v...);}
+#ifdef JONATHAN_DEBUG
+#define debug(x...) cerr << "[" << #x << "] = ["; _print(x)
+#else
+#define debug(x...)
+#endif
 """
 
 Testing_Code = r"""#ifndef TESTING_H
@@ -156,10 +172,7 @@ void print(const std::vector<T> &vec) {
     std::cerr << "}";
 }
 
-void print(TreeNode* node) {
-    std::cerr << "{";
-    std::cerr << "}";
-}
+void print(TreeNode* node) { cerr << endl; printTree("", node, false); }
 
 void print(ListNode* node) {
     std::cerr << "{";
