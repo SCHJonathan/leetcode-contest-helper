@@ -96,7 +96,8 @@ const int RANGE = 1e9+7;
             return f"_construct_tree({{{', '.join('NONE' if x is None else str(x) for x in parent)}}})"
 
         def to_val(val: Any, type_name: str) -> str:
-            type_name_no_space = type_name.replace(' ', '')
+            type_name_no_ref = remove_cv_ref(type_name)
+            type_name_no_space = type_name_no_ref.replace(' ', '')
             if type_name_no_space == "TreeNode*":
                 if not isinstance(val, list):
                     val = [val]
