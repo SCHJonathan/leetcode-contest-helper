@@ -156,8 +156,7 @@ def get_problem(problem_url: str, site: str, cookie_path: str) -> Problem:
         problem_name = '_'.join(problem_name.strip().lower().split(' '))
     else:
         problem_words = problem_url.rstrip('/').split('/')[-1].split('-')
-        problem_words[0] = problem_words[0][0].upper()
-        problem_name = ' '.join(problem_words)
+        problem_name = '_'.join(problem_words)
     problem = Problem(problem_url, problem_name, statement, examples, code)
     log(f"Parsed problem: {problem_name}")
     browser.quit()
