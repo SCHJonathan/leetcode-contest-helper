@@ -37,9 +37,10 @@ def find_functions(code: List[str]) -> Tuple[str, List[FunctionSignature]]:
         - The class name (in most cases it's "Solution" but in interactive problems it might not).
         - A list of function signatures, indicating the functions in the solution class.
     """
-    start_line = next(idx for idx in range(len(code)) if code[idx].startswith("class ") and code[idx].endswith(" {"))
+    start_line = next(idx for idx in range(len(code)) if code[idx].startswith("class Solution") and
+                      code[idx].endswith(" {"))
     class_name = code[start_line][len("class "):-len(" {")].strip()
-    end_line = code.index("};")
+    end_line = code[start_line:].index("};")+start_line
     signatures = []
     for line in code[(start_line + 1):end_line]:
         # A very heuristic way to find function beginnings.
