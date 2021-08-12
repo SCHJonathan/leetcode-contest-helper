@@ -90,6 +90,9 @@ const int RANGE = 1e9+7;
                 return "true" if val else "false"
             if isinstance(val, (int, float)):
                 return str(val)
+            if val is None:
+                return "INT_MIN"
+            # log(f"val:{val}, type_name_input:{type_name_input}")
             assert False
 
         def to_tree(parent: List[Optional[int]]) -> str:
@@ -197,6 +200,8 @@ const int RANGE = 1e9+7;
             for idx, example in enumerate(signature.examples):
                 statements = []
                 for type_name, arg_name in func_sig.arguments:
+                    # log(f"type_name:{type_name}, arg_name:{arg_name}, example.input[arg_name]:{example.input[arg_name]},"
+                    #     f" example:{example}")
                     stmt = decl_assign(type_name, arg_name, to_val(example.input[arg_name], type_name))
                     statements.append(stmt)
                 args = [arg_name for _, arg_name in func_sig.arguments]
