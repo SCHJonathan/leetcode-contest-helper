@@ -141,7 +141,7 @@ def parse_problem(problem: Problem, site: str = "leetcode") -> Union[ProblemSign
             except ValueError:
                 input_str = find_example_section(example, "Input", "Output", ignore_error=True)
                 output_str = find_example_section(example, "Output", "Explanation", ignore_error=True)
-
+            skip_example = False
             input_vals = {}
             for idx, (_, name) in enumerate(func_signature.arguments):
                 if idx > 0 and input_str.startswith(","):
@@ -157,8 +157,16 @@ def parse_problem(problem: Problem, site: str = "leetcode") -> Union[ProblemSign
                     input_str = input_str[len(f"{ident} ="):].strip()
                 elif idx != 0:
                     log(f"Problem \"{problem.name}\": Argument {idx + 1} is unnamed in example {ex_id + 1}", "warning")
-                input_val, input_str = parse_value(input_str)
-                input_vals[name] = input_val
+                log(f'[debug] input_str:{input_str}')
+                try:
+                    input_val, input_str = parse_value(input_str)
+                    input_vals[name] = input_val
+                except Exception as parseValueException:
+                    log(f'[parse_problem] parse_value failed. input_str:{input_str}, exception:{[parseValueException]}', "warning")
+                    skip_example = True
+                    break
+            if skip_example:
+                continue
             if len(input_str) > 0:
                 log(f"Problem \"{problem.name}\": Extra characters in example input section:\n{input_str}", "warning")
 
