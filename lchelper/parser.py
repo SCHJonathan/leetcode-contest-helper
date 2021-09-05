@@ -153,8 +153,14 @@ def parse_problem(problem: Problem, site: str = "leetcode") -> Union[ProblemSign
                     if ident != name:
                         log(f"Problem \"{problem.name}\": Argument {idx + 1} should be `{name}`, "
                             f"but `{ident}` found in example {ex_id + 1}", "warning")
-                    assert input_str.startswith(f"{ident} =")
-                    input_str = input_str[len(f"{ident} ="):].strip()
+                    # log(f"[debug] input_str:{input_str} ident:{ident}", "info")
+                    if input_str.startswith(f"{ident} ="):
+                        input_str = input_str[len(f"{ident} ="):].strip()
+                    elif input_str.startswith(f"{ident}="):
+                        input_str = input_str[len(f"{ident}="):].strip()
+                    else:
+                        log(f"[error] invalid input_str format! input_str:{input_str}", "error")
+                        assert False
                 elif idx != 0:
                     log(f"Problem \"{problem.name}\": Argument {idx + 1} is unnamed in example {ex_id + 1}", "warning")
                 log(f'[debug] input_str:{input_str}')
